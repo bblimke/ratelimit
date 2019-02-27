@@ -124,7 +124,9 @@ class Ratelimit
     options[:threshold] ||= 30
     options[:interval] ||= 30
     options[:increment] ||= 1
-    @raw_redis.lock("#{subject}-ratelimit-lock", {:owner => "#{Thread.current.object_id}"}) do
+    options[:acquire] ||= 10
+    options[:owner] ||= "#{Thread.current.object_id}"
+    @raw_redis.lock("#{subject}-ratelimit-lock", {:owner => options[:owner], :acquire => options[:acquire]}) do
       while exceeded?(subject, options)
         sleep @bucket_interval
       end
