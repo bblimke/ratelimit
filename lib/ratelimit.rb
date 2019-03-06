@@ -128,7 +128,7 @@ class Ratelimit
     options[:owner] ||= "#{Thread.current.object_id}"
     
     Rails.logger.info {{
-      message: "#{Time.now}:#{options[:owner]}: Attempting to acquire the lock",
+      message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Attempting to acquire the lock",
       owner: options[:owner],
       time: Time.now
     }}
@@ -136,7 +136,7 @@ class Ratelimit
     @raw_redis.lock("#{subject}-ratelimit-lock", {:owner => options[:owner], :acquire => options[:acquire]}) do
 
       Rails.logger.info {{
-        message: "#{Time.now}:#{options[:owner]}: Acquired the lock",
+        message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Acquired the lock",
         owner: options[:owner],
         time: Time.now
       }}
@@ -144,7 +144,7 @@ class Ratelimit
       the_count = count(subject, options[:interval])
 
       Rails.logger.info {{
-        message: "#{Time.now}:#{options[:owner]}: Current count is #{the_count}",
+        message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Current count is #{the_count}",
         owner: options[:owner],
         count: the_count,
         threshold: options[:threshold],
@@ -153,7 +153,7 @@ class Ratelimit
        
       while the_count >= options[:threshold]
         Rails.logger.info {{
-          message: "#{Time.now}:#{options[:owner]}: Ratelimit exceeded threshold, sleeping #{@bucket_interval}",
+          message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Ratelimit exceeded threshold, sleeping #{@bucket_interval}",
           owner: options[:owner],
           count: the_count,
           threshold: options[:threshold],
@@ -164,7 +164,7 @@ class Ratelimit
         the_count = count(subject, options[:interval])
 
         Rails.logger.info {{
-          message: "#{Time.now}:#{options[:owner]}: Current count is #{the_count}",
+          message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Current count is #{the_count}",
           owner: options[:owner],
           count: the_count,
           threshold: options[:threshold],
@@ -172,20 +172,20 @@ class Ratelimit
         }}
       end
       Rails.logger.info {{
-        message: "#{Time.now}:#{options[:owner]}: Ratelimit not exceeded threshold, adding 1 to count",
+        message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Ratelimit not exceeded threshold, adding 1 to count",
         owner: options[:owner],
         time: Time.now
       }}
       add(subject, options[:increment])
     end
     Rails.logger.info {{
-      message: "#{Time.now}:#{options[:owner]}: Should be releasing lock and making the request",
+      message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Should be releasing lock and making the request",
       owner: options[:owner],
       time: Time.now
     }}
     yield(self)
     Rails.logger.info {{
-      message: "#{Time.now}:#{options[:owner]}: Finished request",
+      message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Finished request",
       owner: options[:owner],
       time: Time.now
     }}
