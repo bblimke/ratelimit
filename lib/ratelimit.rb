@@ -140,17 +140,39 @@ class Ratelimit
         owner: options[:owner],
         time: Time.now
       }}
+      
+      the_count = count(subject, options[:interval])
 
-      while exceeded?(subject, options)
+      Rails.logger.info {{
+        message: "#{Time.now}:#{options[:owner]}: Current count is #{the_count}",
+        owner: options[:owner],
+        count: the_count,
+        threshold: options[:threshold],
+        time: Time.now
+      }}
+       
+      while the_count >= options[:threshold]
         Rails.logger.info {{
           message: "#{Time.now}:#{options[:owner]}: Ratelimit exceeded threshold, sleeping #{@bucket_interval}",
           owner: options[:owner],
+          count: the_count,
+          threshold: options[:threshold],
           time: Time.now
         }}
         sleep @bucket_interval
+
+        the_count = count(subject, options[:interval])
+
+        Rails.logger.info {{
+          message: "#{Time.now}:#{options[:owner]}: Current count is #{the_count}",
+          owner: options[:owner],
+          count: the_count,
+          threshold: options[:threshold],
+          time: Time.now
+        }}
       end
       Rails.logger.info {{
-        message: "#{Time.now}:#{options[:owner]}: Ratelimit not exceeded threshold, adding to count",
+        message: "#{Time.now}:#{options[:owner]}: Ratelimit not exceeded threshold, adding 1 to count",
         owner: options[:owner],
         time: Time.now
       }}
