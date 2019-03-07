@@ -130,7 +130,7 @@ class Ratelimit
     Rails.logger.info {{
       message: "RLTEST: Attempting to acquire the lock",
       owner: options[:owner],
-      time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
     }}
 
     begin
@@ -139,7 +139,7 @@ class Ratelimit
         Rails.logger.info {{
           message: "RLTEST: Acquired the lock",
           owner: options[:owner],
-          time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
         }}
         
         the_count = count(subject, options[:interval])
@@ -149,7 +149,7 @@ class Ratelimit
           owner: options[:owner],
           count: the_count,
           threshold: options[:threshold],
-          time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
         }}
         
         while the_count >= options[:threshold]
@@ -158,7 +158,7 @@ class Ratelimit
             owner: options[:owner],
             count: the_count,
             threshold: options[:threshold],
-            time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
           }}
           sleep @bucket_interval
 
@@ -169,13 +169,13 @@ class Ratelimit
             owner: options[:owner],
             count: the_count,
             threshold: options[:threshold],
-            time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
           }}
         end
         Rails.logger.info {{
           message: "RLTEST: Ratelimit not exceeded threshold, adding 1 to count",
           owner: options[:owner],
-          time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
         }}
         add(subject, options[:increment])
       end
@@ -183,7 +183,7 @@ class Ratelimit
       Rails.logger.info {{
         message: "RLTEST: Failed to acquire the lock",
         owner: options[:owner],
-        time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
       }}
       raise
     end
@@ -191,13 +191,13 @@ class Ratelimit
     Rails.logger.info {{
       message: "RLTEST: Should be releasing lock and making the request",
       owner: options[:owner],
-      time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
     }}
     yield(self)
     Rails.logger.info {{
       message: "RLTEST: Finished request",
       owner: options[:owner],
-      time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      nottime: Process.clock_gettime(Process::CLOCK_MONOTONIC)
     }}
   end
 
