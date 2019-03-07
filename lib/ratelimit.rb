@@ -128,66 +128,76 @@ class Ratelimit
     options[:owner] ||= "#{Thread.current.object_id}"
     
     Rails.logger.info {{
-      message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Attempting to acquire the lock",
+      message: "RLTEST: Attempting to acquire the lock",
       owner: options[:owner],
-      time: Time.now
+      time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
     }}
 
-    @raw_redis.lock("#{subject}-ratelimit-lock", {:owner => options[:owner], :acquire => options[:acquire]}) do
+    begin
+      @raw_redis.lock("#{subject}-ratelimit-lock", {:owner => options[:owner], :acquire => options[:acquire]}) do
 
-      Rails.logger.info {{
-        message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Acquired the lock",
-        owner: options[:owner],
-        time: Time.now
-      }}
-      
-      the_count = count(subject, options[:interval])
-
-      Rails.logger.info {{
-        message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Current count is #{the_count}",
-        owner: options[:owner],
-        count: the_count,
-        threshold: options[:threshold],
-        time: Time.now
-      }}
-       
-      while the_count >= options[:threshold]
         Rails.logger.info {{
-          message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Ratelimit exceeded threshold, sleeping #{@bucket_interval}",
+          message: "RLTEST: Acquired the lock",
           owner: options[:owner],
-          count: the_count,
-          threshold: options[:threshold],
-          time: Time.now
+          time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
         }}
-        sleep @bucket_interval
-
+        
         the_count = count(subject, options[:interval])
 
         Rails.logger.info {{
-          message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Current count is #{the_count}",
+          message: "RLTEST: Current count is #{the_count}",
           owner: options[:owner],
           count: the_count,
           threshold: options[:threshold],
-          time: Time.now
+          time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
         }}
+        
+        while the_count >= options[:threshold]
+          Rails.logger.info {{
+            message: "RLTEST: Ratelimit exceeded threshold, sleeping #{@bucket_interval}",
+            owner: options[:owner],
+            count: the_count,
+            threshold: options[:threshold],
+            time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          }}
+          sleep @bucket_interval
+
+          the_count = count(subject, options[:interval])
+
+          Rails.logger.info {{
+            message: "RLTEST: Current count is #{the_count}",
+            owner: options[:owner],
+            count: the_count,
+            threshold: options[:threshold],
+            time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          }}
+        end
+        Rails.logger.info {{
+          message: "RLTEST: Ratelimit not exceeded threshold, adding 1 to count",
+          owner: options[:owner],
+          time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        }}
+        add(subject, options[:increment])
       end
+    rescue => e
       Rails.logger.info {{
-        message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Ratelimit not exceeded threshold, adding 1 to count",
+        message: "RLTEST: Failed to acquire the lock",
         owner: options[:owner],
-        time: Time.now
+        time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
       }}
-      add(subject, options[:increment])
+      raise
     end
+
     Rails.logger.info {{
-      message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Should be releasing lock and making the request",
+      message: "RLTEST: Should be releasing lock and making the request",
       owner: options[:owner],
-      time: Time.now
+      time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
     }}
     yield(self)
     Rails.logger.info {{
-      message: "#{Time.now}:#{options[:owner]}:RATELIMIT_TEST: Finished request",
+      message: "RLTEST: Finished request",
       owner: options[:owner],
-      time: Time.now
+      time: Process.clock_gettime(Process::CLOCK_MONOTONIC)
     }}
   end
 
